@@ -1,0 +1,614 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Clínica Médica | Sistema</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- ========================= -->
+    <!-- CABEÇALHO -->
+    <!-- ========================= -->
+
+    <header class="topo">
+
+        <div class="logo-area">
+
+            <div class="logo">
+                +
+            </div>
+
+            <div>
+
+                <h1>Clínica Médica</h1>
+
+                <p>
+                    Sistema de gerenciamento
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="status-sistema">
+
+            <span class="status-ponto"></span>
+
+            Sistema online
+
+        </div>
+
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- ========================= -->
+
+    <main class="container">
+
+
+        <!-- ========================= -->
+        <!-- BEM-VINDO -->
+        <!-- ========================= -->
+
+        <section class="boas-vindas">
+
+            <div>
+
+                <span class="tag">
+                    PAINEL ADMINISTRATIVO
+                </span>
+
+                <h2>
+                    Gerenciamento da clínica
+                </h2>
+
+                <p>
+                    Cadastre pacientes, médicos e
+                    gerencie os agendamentos.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- PACIENTES -->
+        <!-- ========================= -->
+
+        <section class="secao">
+
+            <div class="titulo-secao">
+
+                <div class="icone-secao paciente">
+                    ♙
+                </div>
+
+                <div>
+
+                    <h2>
+                        Pacientes
+                    </h2>
+
+                    <p>
+                        Cadastro e gerenciamento
+                        de pacientes
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid">
+
+                <!-- FORMULÁRIO -->
+
+                <div class="card formulario-card">
+
+                    <h3 id="tituloFormularioPaciente">
+                        Cadastrar paciente
+                    </h3>
+
+                    <p class="descricao">
+                        Preencha os dados abaixo
+                        para cadastrar um paciente.
+                    </p>
+
+
+                    <form id="formPaciente">
+
+
+                        <div class="campo">
+
+                            <label for="nome">
+                                Nome completo
+                            </label>
+
+                            <input
+                                type="text"
+                                id="nome"
+                                placeholder="Digite o nome completo"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="cpf">
+                                CPF
+                            </label>
+
+                            <input
+                                type="text"
+                                id="cpf"
+                                placeholder="000.000.000-00"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="telefone">
+                                Telefone
+                            </label>
+
+                            <input
+                                type="text"
+                                id="telefone"
+                                placeholder="(00) 00000-0000"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="data_nascimento">
+                                Data de nascimento
+                            </label>
+
+                            <input
+                                type="date"
+                                id="data_nascimento"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="botoes-formulario">
+
+                            <button
+                                type="submit"
+                                class="botao principal"
+                                id="botaoPaciente"
+                            >
+                                Cadastrar paciente
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="botao secundario"
+                                id="botaoCancelarEdicao"
+                                onclick="cancelarEdicao()"
+                                style="display: none;"
+                            >
+                                Cancelar edição
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+                    <p
+                        id="mensagemPaciente"
+                        class="mensagem"
+                    ></p>
+
+                </div>
+
+
+                <!-- LISTA -->
+
+                <div class="card lista-card">
+
+                    <div class="cabecalho-card">
+
+                        <div>
+
+                            <h3>
+                                Pacientes cadastrados
+                            </h3>
+
+                            <p>
+                                Pacientes registrados no sistema
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="listaPacientes">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- MÉDICOS -->
+        <!-- ========================= -->
+
+        <section class="secao">
+
+            <div class="titulo-secao">
+
+                <div class="icone-secao medico">
+                    ⚕
+                </div>
+
+                <div>
+
+                    <h2>
+                        Médicos
+                    </h2>
+
+                    <p>
+                        Profissionais cadastrados
+                        na clínica
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid">
+
+
+                <!-- FORMULÁRIO -->
+
+                <div class="card formulario-card">
+
+                    <h3>
+                        Cadastrar médico
+                    </h3>
+
+                    <p class="descricao">
+                        Cadastre um novo profissional
+                        da clínica.
+                    </p>
+
+
+                    <form id="formMedico">
+
+
+                        <div class="campo">
+
+                            <label for="nomeMedico">
+                                Nome completo
+                            </label>
+
+                            <input
+                                type="text"
+                                id="nomeMedico"
+                                placeholder="Digite o nome do médico"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="crm">
+                                CRM
+                            </label>
+
+                            <input
+                                type="text"
+                                id="crm"
+                                placeholder="Número do CRM"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="especialidade">
+                                Especialidade
+                            </label>
+
+                            <input
+                                type="text"
+                                id="especialidade"
+                                placeholder="Ex.: Cardiologia"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="botao principal"
+                        >
+                            Cadastrar médico
+                        </button>
+
+                    </form>
+
+
+                    <p
+                        id="mensagemMedico"
+                        class="mensagem"
+                    ></p>
+
+                </div>
+
+
+                <!-- LISTA -->
+
+                <div class="card lista-card">
+
+                    <div class="cabecalho-card">
+
+                        <div>
+
+                            <h3>
+                                Médicos cadastrados
+                            </h3>
+
+                            <p>
+                                Profissionais disponíveis
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="listaMedicos">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- CONSULTAS -->
+        <!-- ========================= -->
+
+        <section class="secao">
+
+            <div class="titulo-secao">
+
+                <div class="icone-secao consulta">
+                    ◷
+                </div>
+
+                <div>
+
+                    <h2>
+                        Consultas
+                    </h2>
+
+                    <p>
+                        Agendamento e gerenciamento
+                        de consultas
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid">
+
+
+                <!-- AGENDAMENTO -->
+
+                <div class="card formulario-card">
+
+                    <h3>
+                        Agendar consulta
+                    </h3>
+
+                    <p class="descricao">
+                        Selecione o paciente, médico,
+                        data e horário.
+                    </p>
+
+
+                    <form id="formConsulta">
+
+
+                        <div class="campo">
+
+                            <label for="pacienteConsulta">
+                                Paciente
+                            </label>
+
+                            <select
+                                id="pacienteConsulta"
+                                required
+                            >
+
+                                <option value="">
+                                    Selecione um paciente
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="campo">
+
+                            <label for="medicoConsulta">
+                                Médico
+                            </label>
+
+                            <select
+                                id="medicoConsulta"
+                                required
+                            >
+
+                                <option value="">
+                                    Selecione um médico
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="linha-campos">
+
+
+                            <div class="campo">
+
+                                <label for="dataConsulta">
+                                    Data
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="dataConsulta"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="campo">
+
+                                <label for="horarioConsulta">
+                                    Horário
+                                </label>
+
+                                <input
+                                    type="time"
+                                    id="horarioConsulta"
+                                    required
+                                >
+
+                            </div>
+
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="botao principal"
+                        >
+                            Agendar consulta
+                        </button>
+
+                    </form>
+
+
+                    <p
+                        id="mensagemConsulta"
+                        class="mensagem"
+                    ></p>
+
+                </div>
+
+
+                <!-- CONSULTAS -->
+
+                <div class="card lista-card">
+
+                    <div class="cabecalho-card">
+
+                        <div>
+
+                            <h3>
+                                Consultas
+                            </h3>
+
+                            <p>
+                                Agendamentos registrados
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="listaConsultas">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- ========================= -->
+    <!-- RODAPÉ -->
+    <!-- ========================= -->
+
+    <footer>
+
+        <p>
+            Sistema de Gerenciamento da Clínica Médica
+        </p>
+
+        <span>
+            Desenvolvido para fins acadêmicos. Por PragmaNation.
+        </span>
+
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
