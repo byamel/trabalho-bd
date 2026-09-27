@@ -9,18 +9,48 @@ const routes = Router();
 // ========================
 
 routes.post("/pacientes", (req, res) => {
-    const { nome, cpf, telefone, data_nascimento } = req.body;
 
-    const resultado = db.prepare(`
-        INSERT INTO pacientes
-        (nome, cpf, telefone, data_nascimento)
-        VALUES (?, ?, ?, ?)
-    `).run(nome, cpf, telefone, data_nascimento);
+    const {
+        nome,
+        cpf,
+        telefone,
+        data_nascimento
+    } = req.body;
 
-    res.status(201).json({
-        mensagem: "Paciente cadastrado com sucesso",
-        id: resultado.lastInsertRowid
-    });
+    try {
+
+        const resultado = db.prepare(`
+            INSERT INTO pacientes
+            (nome, cpf, telefone, data_nascimento)
+            VALUES (?, ?, ?, ?)
+        `).run(
+            nome,
+            cpf,
+            telefone,
+            data_nascimento
+        );
+
+        res.status(201).json({
+            mensagem: "Paciente cadastrado com sucesso",
+            id: resultado.lastInsertRowid
+        });
+
+    } catch (erro: any) {
+
+        if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
+
+            return res.status(400).json({
+                mensagem: "Este CPF já está cadastrado."
+            });
+
+        }
+
+        console.error(erro);
+
+        return res.status(500).json({
+            mensagem: "Erro ao cadastrar paciente."
+        });
+    }
 });
 
 routes.get("/pacientes", (req, res) => {
@@ -30,6 +60,7 @@ routes.get("/pacientes", (req, res) => {
     `).all();
 
     res.json(pacientes);
+
 });
 
 routes.put("/pacientes/:id", (req, res) => {
@@ -61,20 +92,60 @@ routes.delete("/pacientes/:id", (req, res) => {
 
     const { id } = req.params;
 
-    const resultado = db.prepare(`
-        DELETE FROM pacientes
-        WHERE id = ?
-    `).run(id);
+    try {
 
-    if (resultado.changes === 0) {
-        return res.status(404).json({
-            mensagem: "Paciente não encontrado"
+        // Verifica se o paciente existe
+        const paciente = db.prepare(`
+            SELECT id
+            FROM pacientes
+            WHERE id = ?
+        `).get(id);
+
+        if (!paciente) {
+            return res.status(404).json({
+                mensagem: "Paciente não encontrado"
+            });
+        }
+
+        // Verifica somente consultas ATIVAS
+        const consultaAtiva = db.prepare(`
+            SELECT id
+            FROM consultas
+            WHERE paciente_id = ?
+            AND status = 'agendada'
+        `).get(id);
+
+        if (consultaAtiva) {
+            return res.status(400).json({
+                mensagem: "Não é possível excluir este paciente porque ele possui uma consulta agendada."
+            });
+        }
+
+        // Exclui consultas canceladas antigas
+        db.prepare(`
+            DELETE FROM consultas
+            WHERE paciente_id = ?
+            AND status = 'cancelada'
+        `).run(id);
+
+        // Exclui o paciente
+        db.prepare(`
+            DELETE FROM pacientes
+            WHERE id = ?
+        `).run(id);
+
+        res.json({
+            mensagem: "Paciente excluído com sucesso"
+        });
+
+    } catch (erro) {
+
+        console.error("Erro ao excluir paciente:", erro);
+
+        res.status(500).json({
+            mensagem: "Erro ao excluir paciente."
         });
     }
-
-    res.json({
-        mensagem: "Paciente excluído com sucesso"
-    });
 });
 
 // ========================
