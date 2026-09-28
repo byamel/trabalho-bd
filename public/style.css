@@ -627,7 +627,8 @@ input::placeholder {
 /* ========================= */
 
 #listaPacientes button,
-#listaConsultas button {
+#listaConsultas button,
+#listaMedicos button {
 
     border: none;
 
@@ -650,6 +651,7 @@ input::placeholder {
 
 
 #listaPacientes button:first-of-type,
+#listaMedicos button:first-of-type,
 #listaConsultas button:first-of-type {
 
     background: #dbeafe;
@@ -659,6 +661,7 @@ input::placeholder {
 
 
 #listaPacientes button:first-of-type:hover,
+#listaMedicos button:first-of-type:hover
 #listaConsultas button:first-of-type:hover {
 
     background: #bfdbfe;
@@ -666,6 +669,7 @@ input::placeholder {
 
 
 #listaPacientes button:last-of-type,
+#listaMedicos button:last-of-type,
 #listaConsultas button:last-of-type {
 
     background: #fee2e2;
@@ -675,6 +679,7 @@ input::placeholder {
 
 
 #listaPacientes button:last-of-type:hover,
+#listaMedicos button:last-of-type:hover,
 #listaConsultas button:last-of-type:hover {
 
     background: #fecaca;

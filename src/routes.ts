@@ -153,19 +153,52 @@ routes.delete("/pacientes/:id", (req, res) => {
 // ========================
 
 routes.post("/medicos", (req, res) => {
-    const { nome, crm, especialidade } = req.body;
 
-    const resultado = db.prepare(`
-        INSERT INTO medicos
-        (nome, crm, especialidade)
-        VALUES (?, ?, ?)
-    `).run(nome, crm, especialidade);
+    const {
+        nome,
+        crm,
+        especialidade
+    } = req.body;
 
-    res.status(201).json({
-        mensagem: "Médico cadastrado com sucesso",
-        id: resultado.lastInsertRowid
-    });
+    try {
+
+        const resultado = db.prepare(`
+            INSERT INTO medicos
+            (nome, crm, especialidade)
+            VALUES (?, ?, ?)
+        `).run(
+            nome,
+            crm,
+            especialidade
+        );
+
+        res.status(201).json({
+            mensagem: "Médico cadastrado com sucesso",
+            id: resultado.lastInsertRowid
+        });
+
+    } catch (erro: any) {
+
+        if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
+
+            return res.status(400).json({
+                mensagem: "Este CRM já está cadastrado."
+            });
+
+        }
+
+        console.error(erro);
+
+        return res.status(500).json({
+            mensagem: "Erro ao cadastrar médico."
+        });
+    }
 });
+
+
+// ========================
+// LISTAR MÉDICOS
+// ========================
 
 routes.get("/medicos", (req, res) => {
 
@@ -175,6 +208,137 @@ routes.get("/medicos", (req, res) => {
 
     res.json(medicos);
 
+});
+
+
+// ========================
+// EDITAR MÉDICO
+// ========================
+
+routes.put("/medicos/:id", (req, res) => {
+
+    const { id } = req.params;
+
+    const {
+        nome,
+        crm,
+        especialidade
+    } = req.body;
+
+    try {
+
+        const resultado = db.prepare(`
+            UPDATE medicos
+            SET nome = ?,
+                crm = ?,
+                especialidade = ?
+            WHERE id = ?
+        `).run(
+            nome,
+            crm,
+            especialidade,
+            id
+        );
+
+        if (resultado.changes === 0) {
+
+            return res.status(404).json({
+                mensagem: "Médico não encontrado"
+            });
+
+        }
+
+        res.json({
+            mensagem: "Médico atualizado com sucesso"
+        });
+
+    } catch (erro: any) {
+
+        if (erro.code === "SQLITE_CONSTRAINT_UNIQUE") {
+
+            return res.status(400).json({
+                mensagem: "Este CRM já está cadastrado."
+            });
+
+        }
+
+        console.error(erro);
+
+        return res.status(500).json({
+            mensagem: "Erro ao atualizar médico."
+        });
+    }
+});
+
+
+// ========================
+// EXCLUIR MÉDICO
+// ========================
+
+routes.delete("/medicos/:id", (req, res) => {
+
+    const { id } = req.params;
+
+    try {
+
+        const medico = db.prepare(`
+            SELECT id
+            FROM medicos
+            WHERE id = ?
+        `).get(id);
+
+        if (!medico) {
+
+            return res.status(404).json({
+                mensagem: "Médico não encontrado"
+            });
+
+        }
+
+        // Verifica somente consultas agendadas
+        const consultaAtiva = db.prepare(`
+            SELECT id
+            FROM consultas
+            WHERE medico_id = ?
+            AND status = 'agendada'
+        `).get(id);
+
+        if (consultaAtiva) {
+
+            return res.status(400).json({
+                mensagem: "Não é possível excluir este médico porque ele possui uma consulta agendada."
+            });
+
+        }
+
+        // Remove consultas canceladas antigas
+        db.prepare(`
+            DELETE FROM consultas
+            WHERE medico_id = ?
+            AND status = 'cancelada'
+        `).run(id);
+
+        // Exclui o médico
+        db.prepare(`
+            DELETE FROM medicos
+            WHERE id = ?
+        `).run(id);
+
+        res.json({
+            mensagem: "Médico excluído com sucesso"
+        });
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao excluir médico:",
+            erro
+        );
+
+        res.status(500).json({
+            mensagem: "Erro ao excluir médico."
+        });
+    }
 });
 
 // =========================

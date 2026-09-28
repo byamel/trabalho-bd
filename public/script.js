@@ -19,6 +19,8 @@ const botaoCancelar =
 let pacienteEditando = null;
 
 
+
+
 formPaciente.addEventListener("submit", async (event) => {
 
     event.preventDefault();
@@ -205,10 +207,14 @@ async function editarPaciente(id) {
 
         const resposta = await fetch("/pacientes");
 
+        if (!resposta.ok) {
+            throw new Error("Erro ao buscar pacientes.");
+        }
+
         const pacientes = await resposta.json();
 
         const paciente = pacientes.find(
-            (paciente) => paciente.id === id
+            (p) => p.id === id
         );
 
         if (!paciente) {
@@ -255,6 +261,7 @@ async function editarPaciente(id) {
     }
 }
 
+window.editarPaciente = editarPaciente;
 
 // ========================
 // CANCELAR EDIÇÃO
@@ -344,79 +351,387 @@ const listaMedicos = document.getElementById("listaMedicos");
 
 const mensagemMedico = document.getElementById("mensagemMedico");
 
+let medicoEditando = null;
 
-// CADASTRAR MÉDICO
+// ========================
+// CADASTRAR / EDITAR MÉDICO
+// ========================
+
 formMedico.addEventListener("submit", async (event) => {
 
     event.preventDefault();
 
-    const nome = document.getElementById("nomeMedico").value;
+    const nome =
+        document.getElementById("nomeMedico").value;
 
-    const crm = document.getElementById("crm").value;
+    const crm =
+        document.getElementById("crm").value;
 
     const especialidade =
         document.getElementById("especialidade").value;
 
+    try {
 
-    const resposta = await fetch("/medicos", {
+        // ========================
+        // EDITANDO
+        // ========================
 
-        method: "POST",
+        if (medicoEditando !== null) {
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+            const resposta = await fetch(
+                `/medicos/${medicoEditando}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        crm,
+                        especialidade
+                    })
+                }
+            );
 
-        body: JSON.stringify({
-            nome,
-            crm,
-            especialidade
-        })
+            const dados = await resposta.json();
 
-    });
+            if (!resposta.ok) {
+
+                mensagemMedico.textContent =
+                    dados.mensagem ||
+                    "Erro ao atualizar médico.";
+
+                return;
+            }
+
+            mensagemMedico.textContent =
+                "Médico atualizado com sucesso!";
+
+            medicoEditando = null;
+
+            formMedico.reset();
+
+            const botao =
+                document.getElementById("botaoMedico");
+
+            const titulo =
+                document.getElementById("tituloFormularioMedico");
+
+            const cancelar =
+                document.getElementById("botaoCancelarMedico");
+
+            if (titulo) {
+                titulo.textContent =
+                    "Cadastrar médico";
+            }
+
+            if (botao) {
+                botao.textContent =
+                    "Cadastrar médico";
+            }
+
+            if (cancelar) {
+                cancelar.style.display =
+                    "none";
+            }
+
+            await carregarMedicos();
+
+            return;
+        }
 
 
-    const dados = await resposta.json();
+        // ========================
+        // CADASTRANDO
+        // ========================
 
-    mensagemMedico.textContent = dados.mensagem;
+        const resposta = await fetch(
+            "/medicos",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    nome,
+                    crm,
+                    especialidade
+                })
+            }
+        );
 
-    formMedico.reset();
+        const dados = await resposta.json();
 
-    carregarMedicos();
+        if (!resposta.ok) {
+
+            mensagemMedico.textContent =
+                dados.mensagem ||
+                "Erro ao cadastrar médico.";
+
+            return;
+        }
+
+        mensagemMedico.textContent =
+            "Médico cadastrado com sucesso!";
+
+        formMedico.reset();
+
+        // Atualiza a lista automaticamente
+        await carregarMedicos();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro no formulário de médico:",
+            erro
+        );
+
+        mensagemMedico.textContent =
+            "Erro de comunicação com o servidor.";
+    }
 
 });
 
+// ========================
+// LISTAR MÉDICOS
+// ========================
 
-// CONSULTAR MÉDICOS
 async function carregarMedicos() {
 
-    const resposta = await fetch("/medicos");
+    try {
 
-    const medicos = await resposta.json();
+        const resposta =
+            await fetch("/medicos");
 
-    listaMedicos.innerHTML = "";
+        if (!resposta.ok) {
+            throw new Error(
+                "Erro ao buscar médicos."
+            );
+        }
 
+        const medicos =
+            await resposta.json();
 
-    medicos.forEach((medico) => {
+        listaMedicos.innerHTML = "";
 
-        const div = document.createElement("div");
+        medicos.forEach((medico) => {
 
+            const div =
+                document.createElement("div");
 
-        div.innerHTML = `
-            <h3>${medico.nome}</h3>
+            div.innerHTML = `
+                <h3>${medico.nome}</h3>
 
-            <p>CRM: ${medico.crm}</p>
+                <p>CRM: ${medico.crm}</p>
 
-            <p>Especialidade: ${medico.especialidade}</p>
+                <p>
+                    Especialidade:
+                    ${medico.especialidade}
+                </p>
 
-            <hr>
+                <button
+                    onclick="editarMedico(${medico.id})">
+                    Editar
+                </button>
+
+                <button
+                    onclick="excluirMedico(${medico.id})">
+                    Excluir
+                </button>
+
+                <hr>
+            `;
+
+            listaMedicos.appendChild(div);
+
+        });
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar médicos:",
+            erro
+        );
+
+        listaMedicos.innerHTML = `
+            <p>Erro ao carregar médicos.</p>
         `;
-
-
-        listaMedicos.appendChild(div);
-
-    });
-
+    }
 }
+
+// ========================
+// EDITAR MÉDICO
+// ========================
+
+async function editarMedico(id) {
+
+    try {
+
+        const resposta =
+            await fetch("/medicos");
+
+        const medicos =
+            await resposta.json();
+
+        const medico =
+            medicos.find(
+                (m) => m.id === id
+            );
+
+        if (!medico) {
+
+            alert("Médico não encontrado.");
+
+            return;
+        }
+
+        document.getElementById("nomeMedico").value =
+            medico.nome;
+
+        document.getElementById("crm").value =
+            medico.crm;
+
+        document.getElementById("especialidade").value =
+            medico.especialidade;
+
+        medicoEditando = id;
+
+        const titulo =
+            document.getElementById(
+                "tituloFormularioMedico"
+            );
+
+        const botao =
+            document.getElementById(
+                "botaoMedico"
+            );
+
+        const cancelar =
+            document.getElementById(
+                "botaoCancelarMedico"
+            );
+
+        if (titulo) {
+            titulo.textContent =
+                "Editar médico";
+        }
+
+        if (botao) {
+            botao.textContent =
+                "Salvar alterações";
+        }
+
+        if (cancelar) {
+            cancelar.style.display =
+                "inline-block";
+        }
+
+        document.getElementById("formMedico").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao editar médico:",
+            erro
+        );
+
+        alert(
+            "Erro ao carregar o médico."
+        );
+    }
+}
+
+window.editarMedico = editarMedico;
+
+
+// ========================
+// CANCELAR EDIÇÃO DO MÉDICO
+// ========================
+
+function cancelarEdicaoMedico() {
+
+    medicoEditando = null;
+
+    formMedico.reset();
+
+    document.getElementById(
+        "tituloFormularioMedico"
+    ).textContent = "Cadastrar médico";
+
+    document.getElementById(
+        "botaoMedico"
+    ).textContent = "Cadastrar médico";
+
+    document.getElementById(
+        "botaoCancelarMedico"
+    ).style.display = "none";
+}
+
+window.cancelarEdicaoMedico =
+    cancelarEdicaoMedico;
+
+
+// ========================
+// EXCLUIR MÉDICO
+// ========================
+
+async function excluirMedico(id) {
+
+    const confirmar = confirm(
+        "Tem certeza que deseja excluir este médico?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch(
+            `/medicos/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+
+            alert(
+                dados.mensagem ||
+                "Erro ao excluir médico."
+            );
+
+            return;
+        }
+
+        alert(dados.mensagem);
+
+        // Atualiza a lista sem recarregar a página
+        await carregarMedicos();
+
+        // Atualiza também o select de médicos
+        await carregarMedicosConsulta();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao excluir médico:",
+            erro
+        );
+
+        alert(
+            "Erro de comunicação com o servidor."
+        );
+    }
+}
+
+window.excluirMedico = excluirMedico;
+
 
 // =========================
 // CONSULTAS
@@ -705,6 +1020,58 @@ async function alterarConsulta(id) {
     }
 }
 
+async function excluirMedico(id) {
+
+    const confirmar = confirm(
+        "Tem certeza que deseja excluir este médico?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+
+        const resposta =
+            await fetch(
+                `/medicos/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        const dados =
+            await resposta.json();
+
+        if (!resposta.ok) {
+
+            alert(
+                dados.mensagem ||
+                "Erro ao excluir médico."
+            );
+
+            return;
+        }
+
+        alert(dados.mensagem);
+
+        await carregarMedicos();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao excluir médico:",
+            erro
+        );
+
+        alert(
+            "Erro de comunicação com o servidor."
+        );
+    }
+}
+
+window.excluirMedico = excluirMedico;
+
 
 // =========================
 // CANCELAR CONSULTA
@@ -769,6 +1136,8 @@ carregarPacientesConsulta();
 carregarMedicosConsulta();
 
 carregarConsultas();
+
+carregarMedicos();
 
 
 // =========================
